@@ -55,6 +55,8 @@ processing pipeline.
 
 ## 3. MAC Architecture
 
+![Figure 1: High-level block diagram of the Configurable MAC IP](images/fig1.png)
+
 The Configurable MAC IP is composed of modular functional blocks that collectively
 perform multiplication, accumulation, and result processing. This modular design
 improves readability, configurability, and ease of integration into SoC-level
