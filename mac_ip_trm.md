@@ -29,8 +29,7 @@ functional consistency.
 
 The IP is intended to be controlled by firmware through a simple configuration
 interface and can operate as a standalone compute block or as part of a larger
-processing pipeline. Typical use cases include finite impulse response (FIR)
-filters, convolution operations, and neural network acceleration.
+processing pipeline. 
 
 ---
 
@@ -170,6 +169,24 @@ with the newly generated partial sum to produce the final result.
 
 This staged accumulation approach enables flexible precision support while
 maintaining compatibility with bit-serial CIM input characteristics.
+
+---
+
+## 6. Data Format & Bit Width
+
+This section describes the supported input and weight data formats and their
+associated bit-width configurations.
+
+The MAC IP supports both **4-bit and 8-bit input data** as well as **4-bit and
+8-bit weights**. Input data is processed in a **bit-serial manner**, with one
+input bit consumed per clock cycle in accordance with the Computing-in-Memory
+(CIM) execution model.
+
+Weight data is applied consistently across multiple accumulation cycles and is
+interpreted according to the selected precision configuration.
+
+Data format and bit-width settings must remain unchanged for the duration of a
+MAC operation to ensure correct accumulation and result generation.
 
 ---
 
