@@ -2,7 +2,9 @@
 ## Technical Reference Manual
 
 **Version:** 1.0.0
-**Document Type:** Technical Reference Manual (Sample)  
+
+**Document Type:** Technical Reference Manual (Sample) 
+
 **Language:** English  
 
 > This document is a fictionalized technical documentation sample created for
@@ -42,17 +44,9 @@ filters, convolution operations, and neural network acceleration.
   Provides configurable accumulation depth with optional shifting and saturation
   to prevent overflow and maintain numerical stability.
 
-- **Signed and Unsigned Operation**  
-  Supports both signed and unsigned multiplication and accumulation modes,
-  selectable through configuration registers.
-
 - **Modular and Scalable Architecture**  
   Designed with a modular structure that allows easy customization and scalability
   to meet specific performance, power, and area (PPA) targets.
-
-- **Firmware-Controlled Operation**  
-  Features a simple control interface that enables firmware-driven configuration,
-  operation control, and status monitoring.
 
 - **Pipeline-Friendly Integration**  
   Can operate as a standalone compute block or be integrated into a larger
@@ -81,401 +75,267 @@ flow and timing behavior.
 Detailed block-level descriptions and signal interactions are described in the
 following sections.
 
-## 4. Functional Description
+---
 
-The Configurable MAC IP performs a sequence of multiply-and-accumulate operations
-on input data and weight operands under firmware control. The functional behavior
-of the IP can be adjusted through configuration registers to support various data
-formats, accumulation modes, and numerical processing requirements.
+## 4. Operational Principle
 
-### 4.1 Operation Flow
+The MAC IP implements a multiply-and-accumulate operation optimized for a
+Computing-in-Memory (CIM) execution model. In a CIM architecture, computation is
+performed close to or within memory arrays to minimize data movement and reduce
+system-level bottlenecks.
 
-At a high level, the MAC IP operates according to the following flow:
+Unlike conventional MAC architectures—where full-width input and weight values
+are multiplied each clock cycle and accumulated sequentially—the proposed MAC
+architecture operates on **bit-serial input data**. Input values are provided
+from SRAM on a per-bit basis, which fundamentally alters the accumulation flow.
 
-1. Input data and weight values are provided to the MAC IP through the input
-   interface.
-2. The multiplication unit computes the product of the input operands using the
-   configured signed or unsigned mode.
-3. The multiplication result is forwarded to the accumulation unit, where it is
-   added to the current accumulated value.
-4. Optional shifting and saturation logic is applied to the accumulated result,
-   depending on the configured operation mode.
-5. The final result is stored in an output register and made available for
-   firmware access or downstream processing.
+For each operation, a single input bit is multiplied with the full weight value,
+and the resulting partial products are accumulated across multiple data entries.
+In the evaluated configuration, **25 weighted input values** are summed to form a
+partial sum (`psum`) before proceeding to the next input bit.
 
-This sequence may be repeated for multiple input samples until the configured
-accumulation condition is met.
+Rather than completing one full multiply operation per cycle, the MAC performs
+the following sequence:
 
-### 4.2 Accumulation Behavior
+1. Multiply one input bit with the corresponding weight.
+2. Accumulate the resulting weighted values across all data entries.
+3. Repeat the process for the next input bit on the following clock cycle.
 
-The accumulation unit maintains an internal accumulator register that stores the
-intermediate and final results of the MAC operation. The accumulator can be
-configured to reset automatically at the start of an operation or be explicitly
-cleared by firmware.
-
-Depending on configuration, the MAC IP supports continuous accumulation across
-multiple input samples or single-cycle accumulation for independent operations.
-This flexibility allows the IP to be used in both streaming and batch-processing
-applications.
-
-### 4.3 Data Processing Options
-
-The MAC IP supports configurable data processing options to accommodate different
-numerical requirements:
-
-- Signed or unsigned multiplication
-- Programmable shift operations to control result scaling
-- Optional saturation to prevent overflow
-
-These options enable designers to balance numerical precision and hardware
-complexity based on application needs.
-
-### 4.4 Control and Status Handling
-
-Operation of the MAC IP is initiated and controlled through a set of configuration
-and control registers. Firmware can enable or disable the MAC operation, select
-operating modes, and monitor status flags that indicate operation completion or
-exception conditions.
-
-Status information allows firmware to synchronize MAC operations with other
-processing stages in the system, supporting deterministic and repeatable
-execution.
+This bit-wise accumulation continues until all input bits have been processed.
+The architecture supports multiple precision modes, allowing operation with
+4-bit or 8-bit input data and 4-bit or 8-bit weights, resulting in four supported
+input–weight configuration combinations.
 
 ---
 
 ## 5. Module Description
 
-The Configurable MAC IP is organized into a set of modular functional blocks,
-each responsible for a specific aspect of the multiply-and-accumulate operation.
-This modular structure simplifies integration, configuration, and future
-extension of the IP.
+The MAC IP is composed of three primary functional modules: **LMAC**, **GIO**, and
+**FinalShiftAcc**. These modules cooperate to perform bit-serial multiplication,
+partial-sum accumulation, and final result generation.
 
-A high-level block diagram of the MAC IP is shown in Figure 1.
+### 5.1 LMAC (Logic MAC)
 
-### 5.1 Input Interface
+The LMAC module performs the core multiplication and partial accumulation
+operations. It multiplies a single input bit with a 4-bit weight to generate
+weighted input values.
 
-The input interface is responsible for receiving input data and weight operands
-from the surrounding system. It ensures that operand values are properly aligned
-and presented to the multiplication unit according to the configured data width
-and signedness settings.
+For each input bit, **25 weighted inputs** are produced and combined using an
+adder-tree structure. The adder tree groups weighted inputs in pairs and sums
+them hierarchically to produce a partial sum output.
 
-The input interface also provides basic handshaking and control signaling to
-coordinate data transfer with upstream logic or firmware-driven data sources.
+The top-level MAC IP instantiates **two LMAC modules**. Each LMAC processes a
+4-bit portion of the weight:
 
-### 5.2 Multiplication Unit
+- When operating with a 4-bit weight, only one LMAC is active and the second
+  LMAC outputs zero.
+- When operating with an 8-bit weight, both LMAC modules operate concurrently,
+  each handling one 4-bit segment of the weight.
 
-The multiplication unit performs the core arithmetic operation of multiplying
-the input data and weight operands. The unit supports both signed and unsigned
-multiplication modes, selectable through configuration registers.
-
-Operand bit widths are configurable, allowing the multiplication unit to adapt
-to different numerical precision requirements. The multiplication result is
-forwarded to the accumulation path for further processing.
-
-### 5.3 Accumulation Unit
-
-The accumulation unit maintains an internal accumulator register that stores the
-running sum of multiplication results. Each new multiplication result is added
-to the current accumulator value based on the configured accumulation mode.
-
-The accumulator can be reset or preserved between operations under firmware
-control, enabling both single-operation and multi-sample accumulation use cases.
-This flexibility supports a wide range of DSP algorithms and processing models.
-## 5. Module Description
-
-The Configurable MAC IP is organized into a set of modular functional blocks,
-each responsible for a specific aspect of the multiply-and-accumulate operation.
-This modular structure simplifies integration, configuration, and future
-extension of the IP.
-
-A high-level block diagram of the MAC IP is shown in Figure 1.
-
-### 5.1 Input Interface
-
-The input interface is responsible for receiving input data and weight operands
-from the surrounding system. It ensures that operand values are properly aligned
-and presented to the multiplication unit according to the configured data width
-and signedness settings.
-
-The input interface also provides basic handshaking and control signaling to
-coordinate data transfer with upstream logic or firmware-driven data sources.
-
-### 5.2 Multiplication Unit
-
-The multiplication unit performs the core arithmetic operation of multiplying
-the input data and weight operands. The unit supports both signed and unsigned
-multiplication modes, selectable through configuration registers.
-
-Operand bit widths are configurable, allowing the multiplication unit to adapt
-to different numerical precision requirements. The multiplication result is
-forwarded to the accumulation path for further processing.
-
-### 5.3 Accumulation Unit
-
-The accumulation unit maintains an internal accumulator register that stores the
-running sum of multiplication results. Each new multiplication result is added
-to the current accumulator value based on the configured accumulation mode.
-
-The accumulator can be reset or preserved between operations under firmware
-control, enabling both single-operation and multi-sample accumulation use cases.
-This flexibility supports a wide range of DSP algorithms and processing models.
-
-### 5.4 Shift and Saturation Logic
-
-The shift and saturation logic processes the accumulated result before it is
-written to the output register. Programmable shift operations allow scaling of
-the result to manage numerical range and precision.
-
-Optional saturation logic can be enabled to clamp the output value within a
-defined range, preventing overflow and ensuring predictable numerical behavior
-in fixed-point processing environments.
-
-### 5.5 Control and Status Logic
-
-The control and status logic manages configuration, operation sequencing, and
-status reporting for the MAC IP. Firmware interacts with this logic through
-control registers to select operating modes, initiate operations, and monitor
-execution progress.
-
-Status flags provide visibility into operation completion and exceptional
-conditions, allowing firmware to coordinate MAC operations with other system
-components.
-
----
+Addition within the LMAC is implemented using an **8-bit Carry Lookahead Adder
+(CLA)**. The CLA is composed of two 4-bit CLA blocks and a 2-bit lookahead unit.
+Each 4-bit CLA consists of four full adders and a 4-bit lookahead logic unit,
+providing fast carry propagation and improved performance.
 
 
-### 5.4 Shift and Saturation Logic
+### 5.2 GIO (General Input/Output Interface)
 
-The shift and saturation logic processes the accumulated result before it is
-written to the output register. Programmable shift operations allow scaling of
-the result to manage numerical range and precision.
+The GIO module manages partial-sum alignment, accumulation, and intermediate
+storage between LMAC processing stages. It consists of D flip-flops, CLA-based
+adders, and a shift-and-accumulate unit.
 
-Optional saturation logic can be enabled to clamp the output value within a
-defined range, preventing overflow and ensuring predictable numerical behavior
-in fixed-point processing environments.
+When operating with 8-bit weights, the LMAC outputs are generated from two
+separate 4-bit weight segments. The upper 4-bit segment requires positional
+correction; therefore, the GIO module performs digit alignment by appending
+zero-padding prior to accumulation.
 
-### 5.5 Control and Status Logic
+Aligned partial sums are combined using CLA-based adders. The resulting values
+are then forwarded to the shift-and-accumulate logic, which applies
+configuration-dependent shifting and accumulation on each clock cycle.
 
-The control and status logic manages configuration, operation sequencing, and
-status reporting for the MAC IP. Firmware interacts with this logic through
-control registers to select operating modes, initiate operations, and monitor
-execution progress.
 
-Status flags provide visibility into operation completion and exceptional
-conditions, allowing firmware to coordinate MAC operations with other system
-components.
+### 5.3 FinalShiftAcc (Final Shift and Accumulation Unit)
 
----
+The FinalShiftAcc module generates the final MAC output value based on the input
+precision configuration.
 
-## 6. Data Format & Bit Width
+When operating with 4-bit input data, the output of the GIO module represents
+the final accumulated result and is forwarded directly as the MAC output.
 
-The Configurable MAC IP supports flexible data formats and bit width
-configurations to accommodate a wide range of numerical precision and
-performance requirements. Input operands, accumulation behavior, and output
-results can be tailored through configuration registers.
+When operating with 8-bit input data, the MAC computation spans two processing
+phases. The result corresponding to the lower 4-bit input segment is temporarily
+stored while the LMAC and GIO modules process the upper 4-bit segment. Once both
+segments have been processed, the FinalShiftAcc module combines the stored value
+with the newly generated partial sum to produce the final result.
 
-### 6.1 Input Data and Weight Format
-
-The MAC IP accepts two independent input operands: input data and weight.
-Both operands may be configured with programmable bit widths and can operate
-in either signed or unsigned format.
-
-The supported bit width range allows designers to balance numerical precision
-against hardware cost. Signed operation uses two’s complement representation,
-while unsigned operation treats operands as positive binary values.
-
-### 6.2 Multiplication Result Width
-
-The multiplication result width is determined by the sum of the configured
-input data and weight bit widths. The full-precision multiplication result is
-preserved internally to maintain numerical accuracy before accumulation and
-post-processing.
-
-This internal full-width result enables accurate accumulation across multiple
-operations and reduces precision loss in fixed-point processing scenarios.
-
-### 6.3 Accumulator Width and Behavior
-
-The accumulator register width is sized to accommodate multiple multiplication
-results without overflow under normal operating conditions. The accumulator
-may be wider than the multiplication result to support extended accumulation
-depths.
-
-Depending on configuration, the accumulator may retain intermediate results
-across multiple operations or be reset at the start of each operation. Optional
-saturation logic can be enabled to clamp the accumulated value within a defined
-range.
-
-### 6.4 Output Data Format
-
-The output result is derived from the accumulated value after optional shifting
-and saturation are applied. Programmable shift operations allow scaling of the
-result to match downstream data width requirements.
-
-The final output is provided in a format consistent with the selected signed or
-unsigned mode and is made available through the output register or interface
-for firmware access or further processing.
+This staged accumulation approach enables flexible precision support while
+maintaining compatibility with bit-serial CIM input characteristics.
 
 ---
 
 ## 7. Control & Configuration Interface
 
-The Configurable MAC IP is controlled and monitored through a set of
-memory-mapped configuration and status registers. These registers allow
-firmware to configure operating modes, initiate MAC operations, and observe
-execution status.
+This section describes the configuration parameters and control behavior of the
+MAC IP. The interface allows firmware or control logic to configure input and
+weight precision and to manage MAC operation sequencing.
 
-The control interface is designed to be simple and predictable, enabling
-straightforward integration into a wide range of SoC environments.
+### 7.1 Configuration Parameters
 
-### 7.1 Configuration Registers
+The MAC IP supports configurable input and weight precision modes. Configuration
+parameters determine how incoming data is interpreted and how accumulation is
+performed.
 
-Configuration registers are used to define the operational behavior of the MAC
-IP. These registers allow firmware to specify parameters such as:
+Key configuration options include input data width and weight data width.
 
-- Input data and weight bit widths
-- Signed or unsigned operation mode
-- Accumulation and reset behavior
-- Shift and saturation options
 
-Configuration registers must be programmed before initiating a MAC operation.
-Changes to configuration settings during an active operation are not recommended
-unless explicitly supported by the system integration.
+### 7.2 Precision Configuration
 
-### 7.2 Control Registers
+The MAC IP supports the following precision configurations:
 
-Control registers are used to start, stop, and manage MAC operations. Typical
-control functions include enabling the MAC IP, triggering computation, and
-clearing internal state such as the accumulator register.
+- 4-bit input × 4-bit weight
+- 4-bit input × 8-bit weight
+- 8-bit input × 4-bit weight
+- 8-bit input × 8-bit weight
 
-Firmware may use control registers to coordinate MAC operations with other system
-components and to implement higher-level processing sequences.
+When operating in 8-bit input mode, the computation is performed in two stages.
+The lower 4-bit input segment is processed first, followed by the upper 4-bit
+segment. Intermediate results are stored and combined to produce the final
+output.
 
-### 7.3 Status Registers
+### 7.3 Operation Flow Control
 
-Status registers provide visibility into the current state of the MAC IP.
-These registers allow firmware to determine whether an operation is in progress,
-has completed, or has encountered an exceptional condition.
+MAC operations proceed in a deterministic, clock-driven manner. For each clock
+cycle, one input bit is processed and accumulated internally.
 
-Status information supports polling-based control as well as interrupt-driven
-operation, depending on system requirements.
+The MAC continues processing until all configured input bits have been consumed.
+Upon completion, the final accumulated result is generated and made available
+at the output interface.
 
-### 7.4 Operation Sequencing
 
-A typical MAC operation follows this sequence:
+### 7.4 Output Validity
 
-1. Configure operating parameters using the configuration registers.
-2. Initialize or clear the accumulator as required.
-3. Enable the MAC IP and trigger the operation through the control registers.
-4. Monitor status registers to determine operation completion.
-5. Read the output result and proceed with subsequent processing.
-
-This structured sequencing ensures deterministic behavior and repeatable
-execution across different operating modes.
+The output value is considered valid only after all required input bits have
+been processed according to the selected precision configuration. For multi-
+stage operations, intermediate results are internally stored until final
+accumulation is complete.
 
 ---
 
 ## 8. Performance Summary
 
-This section summarizes representative performance, power, and area (PPA)
-characteristics observed from an academic prototype implementation of the
-Configurable MAC IP. The results are provided for reference purposes only and
-illustrate relative trends rather than absolute production metrics.
+This section summarizes the performance, power, and area (PPA) characteristics of
+the Configurable MAC IP based on a prototype implementation and physical design
+evaluation. The results are provided for reference and trend analysis and do not
+represent production-qualified metrics.
 
-### 8.1 Evaluation Environment
+### 8.1 Evaluation Methodology
 
-The PPA results were obtained from a prototype implementation targeting an
-FPGA-based evaluation flow. Synthesis, place-and-route, and power analysis were
-performed using an automated open-source physical design flow.
+Performance evaluation was conducted using the open-source OpenROAD toolchain.
+The evaluation flow includes logic synthesis, floorplanning, placement, routing,
+and static timing analysis.
 
-The evaluated configuration represents one possible instantiation of the MAC
-IP and does not reflect exhaustive optimization across all supported
-configuration options.
+The MAC IP RTL was synthesized using the Nangate45 open-source standard cell
+library. Timing constraints and basic floorplan properties were provided to
+enable end-to-end physical implementation and comparative PPA analysis.
 
 ### 8.2 Performance Results
 
-Compared to a baseline implementation, the evaluated MAC configuration achieved
-approximately **12% improvement in performance**, measured in terms of maximum
-operating frequency.
-
-The performance gain is primarily attributed to architectural optimization and
-improved data path organization within the MAC processing blocks.
+Compared to the initial baseline implementation, the optimized MAC design
+achieved approximately **12% improvement in maximum operating frequency**.
+The performance gain is primarily attributed to architectural refinements and
+optimized adder structures within the accumulation path.
 
 ### 8.3 Power Consumption
 
-The prototype implementation exhibited an approximate **22% increase in power
-consumption** relative to the baseline design. This increase reflects the trade-
-off associated with higher performance and expanded data processing capability.
+The optimized design exhibited an approximate **22% increase in power
+consumption** relative to the baseline implementation. This increase reflects
+higher switching activity and additional logic associated with improved
+performance.
 
-Power consumption is sensitive to configuration parameters such as data width,
-accumulation depth, and operating frequency.
+Power consumption varies depending on configuration parameters such as input
+precision, weight precision, and accumulation behavior.
 
 ### 8.4 Area Utilization
 
 Area utilization increased by approximately **21%** compared to the baseline
-design. The increase is associated with additional logic required to support
-configurability and enhanced accumulation functionality.
+design. The increase is mainly due to additional logic introduced for optimized
+accumulation and carry lookahead adder structures.
 
-Designers may adjust configuration parameters to balance area constraints
-against performance and numerical precision requirements.
+Area requirements scale with configuration options and supported precision
+modes.
 
-### 8.5 PPA Trade-off Considerations
+### 8.5 PPA Trade-off Analysis
 
-The observed results highlight typical performance–power–area trade-offs
-encountered in MAC IP design. Higher performance configurations provide improved
-throughput at the cost of increased power and area, while simplified
-configurations may reduce resource usage with lower peak performance.
+The evaluation results highlight typical performance–power–area trade-offs
+observed in MAC IP design. While performance improvements were achieved, they
+were accompanied by increased power consumption and area utilization.
 
-These trends are consistent with expectations for configurable compute IPs and
-should be considered during system-level integration and optimization.
+These results demonstrate the impact of architectural and adder-level
+optimization choices and emphasize the importance of selecting appropriate
+configurations based on system-level requirements.
 
 ---
 
 ## 9. Integration Guidelines
 
 This section provides general guidelines for integrating the Configurable MAC IP
-into a larger SoC or processing subsystem. Proper integration ensures correct
-operation, optimal performance, and reliable interaction with firmware and
-surrounding logic.
+into a larger SoC or processing subsystem. The MAC IP operates using a bit-serial,
+multi-cycle accumulation model, and proper integration requires awareness of its
+timing and precision-dependent behavior.
 
 ### 9.1 Clock and Reset Integration
 
 The MAC IP should be driven by a stable system clock that meets the timing
-requirements of the selected configuration. Higher operating frequencies may
-require careful consideration of data width and accumulation depth to satisfy
-timing constraints.
+requirements of the selected configuration. Because MAC operations span multiple
+clock cycles, the clock must remain continuous and free of glitches throughout
+the entire computation window.
 
-A synchronous reset is recommended to initialize internal state, including the
-accumulator and control logic, to a known condition during system startup or
-error recovery.
+A synchronous reset is recommended to initialize internal state, including
+accumulation registers and control logic, to a known condition during system
+startup or recovery from error conditions.
 
 ### 9.2 Firmware Interaction
 
-Firmware is responsible for configuring the MAC IP prior to operation and for
-managing operation sequencing through the control and status registers. It is
-recommended that firmware verify configuration settings before initiating MAC
-operations to ensure consistent behavior.
+Firmware or control logic is responsible for configuring the MAC IP prior to
+operation, including selection of input and weight precision modes.
 
-Polling-based or interrupt-driven control mechanisms may be used depending on
-system latency and responsiveness requirements.
+Once an operation has started, configuration parameters should remain unchanged
+until the MAC computation has completed. Modifying configuration settings during
+an active operation may result in undefined behavior.
 
 ### 9.3 Data Path Integration
 
-Input data and weight operands should be provided in accordance with the
-configured data format and timing expectations. Care should be taken to ensure
-that upstream logic delivers valid operands when the MAC IP is enabled.
+Input data is processed in a bit-serial manner, with one input bit consumed per
+clock cycle. Upstream logic must ensure that input data remains valid and
+properly aligned for the duration of the MAC operation.
 
-The output result may be consumed directly by firmware or forwarded to downstream
-processing blocks as part of a larger computation pipeline.
+Weight data is applied consistently across multiple accumulation cycles.
+Care should be taken to guarantee stable weight values throughout the full
+computation sequence.
 
-### 9.4 System-Level Considerations
+The output result becomes valid only after all required input bits have been
+processed and accumulated.
+
+### 9.4 Precision-Dependent Latency Considerations
+
+The number of clock cycles required to produce a valid output depends on the
+selected input precision.
+
+When operating with 8-bit input data, the MAC computation is performed in two
+stages corresponding to the lower and upper input bit segments. Intermediate
+results are internally stored and combined before the final output is generated.
+
+System-level scheduling and data handoff logic should account for this
+precision-dependent latency behavior.
+
+### 9.5 System-Level Considerations
 
 When integrating multiple MAC instances or operating in high-throughput
 scenarios, designers should consider overall system bandwidth, clock domain
 crossing requirements, and power management strategies.
 
-Configuration parameters may be adjusted to balance system-level performance and
-resource utilization.
+Configuration parameters may be adjusted to balance system-level performance,
+power consumption, and area utilization.
 
 ---
 
