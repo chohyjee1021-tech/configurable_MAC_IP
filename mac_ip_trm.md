@@ -1,7 +1,7 @@
 # Configurable MAC IP  
 ## Technical Reference Manual
 
-**Version:** 1.0  
+**Version:** 1.0.0
 **Document Type:** Technical Reference Manual (Sample)  
 **Language:** English  
 
@@ -266,6 +266,239 @@ conditions, allowing firmware to coordinate MAC operations with other system
 components.
 
 ---
+
+## 6. Data Format & Bit Width
+
+The Configurable MAC IP supports flexible data formats and bit width
+configurations to accommodate a wide range of numerical precision and
+performance requirements. Input operands, accumulation behavior, and output
+results can be tailored through configuration registers.
+
+### 6.1 Input Data and Weight Format
+
+The MAC IP accepts two independent input operands: input data and weight.
+Both operands may be configured with programmable bit widths and can operate
+in either signed or unsigned format.
+
+The supported bit width range allows designers to balance numerical precision
+against hardware cost. Signed operation uses two’s complement representation,
+while unsigned operation treats operands as positive binary values.
+
+### 6.2 Multiplication Result Width
+
+The multiplication result width is determined by the sum of the configured
+input data and weight bit widths. The full-precision multiplication result is
+preserved internally to maintain numerical accuracy before accumulation and
+post-processing.
+
+This internal full-width result enables accurate accumulation across multiple
+operations and reduces precision loss in fixed-point processing scenarios.
+
+### 6.3 Accumulator Width and Behavior
+
+The accumulator register width is sized to accommodate multiple multiplication
+results without overflow under normal operating conditions. The accumulator
+may be wider than the multiplication result to support extended accumulation
+depths.
+
+Depending on configuration, the accumulator may retain intermediate results
+across multiple operations or be reset at the start of each operation. Optional
+saturation logic can be enabled to clamp the accumulated value within a defined
+range.
+
+### 6.4 Output Data Format
+
+The output result is derived from the accumulated value after optional shifting
+and saturation are applied. Programmable shift operations allow scaling of the
+result to match downstream data width requirements.
+
+The final output is provided in a format consistent with the selected signed or
+unsigned mode and is made available through the output register or interface
+for firmware access or further processing.
+
+---
+
+## 7. Control & Configuration Interface
+
+The Configurable MAC IP is controlled and monitored through a set of
+memory-mapped configuration and status registers. These registers allow
+firmware to configure operating modes, initiate MAC operations, and observe
+execution status.
+
+The control interface is designed to be simple and predictable, enabling
+straightforward integration into a wide range of SoC environments.
+
+### 7.1 Configuration Registers
+
+Configuration registers are used to define the operational behavior of the MAC
+IP. These registers allow firmware to specify parameters such as:
+
+- Input data and weight bit widths
+- Signed or unsigned operation mode
+- Accumulation and reset behavior
+- Shift and saturation options
+
+Configuration registers must be programmed before initiating a MAC operation.
+Changes to configuration settings during an active operation are not recommended
+unless explicitly supported by the system integration.
+
+### 7.2 Control Registers
+
+Control registers are used to start, stop, and manage MAC operations. Typical
+control functions include enabling the MAC IP, triggering computation, and
+clearing internal state such as the accumulator register.
+
+Firmware may use control registers to coordinate MAC operations with other system
+components and to implement higher-level processing sequences.
+
+### 7.3 Status Registers
+
+Status registers provide visibility into the current state of the MAC IP.
+These registers allow firmware to determine whether an operation is in progress,
+has completed, or has encountered an exceptional condition.
+
+Status information supports polling-based control as well as interrupt-driven
+operation, depending on system requirements.
+
+### 7.4 Operation Sequencing
+
+A typical MAC operation follows this sequence:
+
+1. Configure operating parameters using the configuration registers.
+2. Initialize or clear the accumulator as required.
+3. Enable the MAC IP and trigger the operation through the control registers.
+4. Monitor status registers to determine operation completion.
+5. Read the output result and proceed with subsequent processing.
+
+This structured sequencing ensures deterministic behavior and repeatable
+execution across different operating modes.
+
+---
+
+## 8. Performance Summary
+
+This section summarizes representative performance, power, and area (PPA)
+characteristics observed from an academic prototype implementation of the
+Configurable MAC IP. The results are provided for reference purposes only and
+illustrate relative trends rather than absolute production metrics.
+
+### 8.1 Evaluation Environment
+
+The PPA results were obtained from a prototype implementation targeting an
+FPGA-based evaluation flow. Synthesis, place-and-route, and power analysis were
+performed using an automated open-source physical design flow.
+
+The evaluated configuration represents one possible instantiation of the MAC
+IP and does not reflect exhaustive optimization across all supported
+configuration options.
+
+### 8.2 Performance Results
+
+Compared to a baseline implementation, the evaluated MAC configuration achieved
+approximately **12% improvement in performance**, measured in terms of maximum
+operating frequency.
+
+The performance gain is primarily attributed to architectural optimization and
+improved data path organization within the MAC processing blocks.
+
+### 8.3 Power Consumption
+
+The prototype implementation exhibited an approximate **22% increase in power
+consumption** relative to the baseline design. This increase reflects the trade-
+off associated with higher performance and expanded data processing capability.
+
+Power consumption is sensitive to configuration parameters such as data width,
+accumulation depth, and operating frequency.
+
+### 8.4 Area Utilization
+
+Area utilization increased by approximately **21%** compared to the baseline
+design. The increase is associated with additional logic required to support
+configurability and enhanced accumulation functionality.
+
+Designers may adjust configuration parameters to balance area constraints
+against performance and numerical precision requirements.
+
+### 8.5 PPA Trade-off Considerations
+
+The observed results highlight typical performance–power–area trade-offs
+encountered in MAC IP design. Higher performance configurations provide improved
+throughput at the cost of increased power and area, while simplified
+configurations may reduce resource usage with lower peak performance.
+
+These trends are consistent with expectations for configurable compute IPs and
+should be considered during system-level integration and optimization.
+
+---
+
+## 9. Integration Guidelines
+
+This section provides general guidelines for integrating the Configurable MAC IP
+into a larger SoC or processing subsystem. Proper integration ensures correct
+operation, optimal performance, and reliable interaction with firmware and
+surrounding logic.
+
+### 9.1 Clock and Reset Integration
+
+The MAC IP should be driven by a stable system clock that meets the timing
+requirements of the selected configuration. Higher operating frequencies may
+require careful consideration of data width and accumulation depth to satisfy
+timing constraints.
+
+A synchronous reset is recommended to initialize internal state, including the
+accumulator and control logic, to a known condition during system startup or
+error recovery.
+
+### 9.2 Firmware Interaction
+
+Firmware is responsible for configuring the MAC IP prior to operation and for
+managing operation sequencing through the control and status registers. It is
+recommended that firmware verify configuration settings before initiating MAC
+operations to ensure consistent behavior.
+
+Polling-based or interrupt-driven control mechanisms may be used depending on
+system latency and responsiveness requirements.
+
+### 9.3 Data Path Integration
+
+Input data and weight operands should be provided in accordance with the
+configured data format and timing expectations. Care should be taken to ensure
+that upstream logic delivers valid operands when the MAC IP is enabled.
+
+The output result may be consumed directly by firmware or forwarded to downstream
+processing blocks as part of a larger computation pipeline.
+
+### 9.4 System-Level Considerations
+
+When integrating multiple MAC instances or operating in high-throughput
+scenarios, designers should consider overall system bandwidth, clock domain
+crossing requirements, and power management strategies.
+
+Configuration parameters may be adjusted to balance system-level performance and
+resource utilization.
+
+---
+
+## 10. Limitations & Notes
+
+The Configurable MAC IP is intended as a flexible and reusable compute block;
+however, certain limitations and considerations should be noted.
+
+- Performance, power, and area characteristics depend strongly on configuration
+  parameters and integration context.
+- Extreme data width or accumulation configurations may require additional
+  timing optimization at the system level.
+- The IP does not include built-in error correction or fault tolerance
+  mechanisms and relies on system-level handling for such requirements.
+- The performance results presented in this document are based on an academic
+  prototype implementation and are provided for reference only.
+
+Designers are encouraged to validate configurations and performance within their
+target system environment.
+
+---
+
+
 
 
 
