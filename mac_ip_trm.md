@@ -55,7 +55,7 @@ processing pipeline.
 
 ## 3. MAC Architecture
 
-![Figure 1: High-level block diagram of the Configurable MAC IP](images/fig1_mac_equation.png)
+![Figure 1: High-level block diagram of the Configurable MAC IP](images/fig1_mac_block_diagram.png)
 
 The Configurable MAC IP is composed of modular functional blocks that collectively
 perform multiplication, accumulation, and result processing. This modular design
@@ -80,7 +80,7 @@ following sections.
 
 ## 4. Operational Principle
 
-![Figure 2: MAC operation](images/fig2_equation.png)
+![Figure 2: MAC operation](images/fig2_mac_equation.png)
 
 The MAC IP implements a multiply-and-accumulate operation optimized for a
 Computing-in-Memory (CIM) execution model. In a CIM architecture, computation is
