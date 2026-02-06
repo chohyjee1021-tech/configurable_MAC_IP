@@ -123,6 +123,122 @@ partial-sum accumulation, and final result generation.
 
 ![Figure 4: LMAC Flow](images/fig4_lmac.jpeg)
 
+flowchart LR
+
+%% Inputs
+WI0[weighted_input[0]]
+WI1[weighted_input[1]]
+WI2[weighted_input[2]]
+WI3[weighted_input[3]]
+WI4[weighted_input[4]]
+WI5[weighted_input[5]]
+WI6[weighted_input[6]]
+WI7[weighted_input[7]]
+WI8[weighted_input[8]]
+WI9[weighted_input[9]]
+WI10[weighted_input[10]]
+WI11[weighted_input[11]]
+WI12[weighted_input[12]]
+WI13[weighted_input[13]]
+WI14[weighted_input[14]]
+WI15[weighted_input[15]]
+WI16[weighted_input[16]]
+WI17[weighted_input[17]]
+WI18[weighted_input[18]]
+WI19[weighted_input[19]]
+WI20[weighted_input[20]]
+WI21[weighted_input[21]]
+WI22[weighted_input[22]]
+WI23[weighted_input[23]]
+WI24[weighted_input[24]]
+
+%% Level 1 adders
+A0[CLA_8b]
+A1[CLA_8b]
+A2[CLA_8b]
+A3[CLA_8b]
+A4[CLA_8b]
+A5[CLA_8b]
+A6[CLA_8b]
+A7[CLA_8b]
+A8[CLA_8b]
+A9[CLA_8b]
+A10[CLA_8b]
+A11[CLA_8b]
+
+WI0 --> A0
+WI1 --> A0
+WI2 --> A1
+WI3 --> A1
+WI4 --> A2
+WI5 --> A2
+WI6 --> A3
+WI7 --> A3
+WI8 --> A4
+WI9 --> A4
+WI10 --> A5
+WI11 --> A5
+WI12 --> A6
+WI13 --> A6
+WI14 --> A7
+WI15 --> A7
+WI16 --> A8
+WI17 --> A8
+WI18 --> A9
+WI19 --> A9
+WI20 --> A10
+WI21 --> A10
+WI22 --> A11
+WI23 --> A11
+
+%% Level 2 adders
+B0[CLA_8b]
+B1[CLA_8b]
+B2[CLA_8b]
+B3[CLA_8b]
+B4[CLA_8b]
+B5[CLA_8b]
+
+A0 --> B0
+A1 --> B0
+A2 --> B1
+A3 --> B1
+A4 --> B2
+A5 --> B2
+A6 --> B3
+A7 --> B3
+A8 --> B4
+A9 --> B4
+A10 --> B5
+A11 --> B5
+
+%% Level 3 adders
+C0[CLA_8b]
+C1[CLA_8b]
+C2[CLA_8b]
+
+B0 --> C0
+B1 --> C0
+B2 --> C1
+B3 --> C1
+B4 --> C2
+B5 --> C2
+
+%% Level 4 adders
+D0[CLA_8b]
+D1[CLA_8b]
+
+C0 --> D0
+C1 --> D0
+C2 --> D1
+WI24 --> D1
+
+%% Final output
+OUT[Accumulated Output]
+D0 --> OUT
+D1 --> OUT
+
+
 The LMAC module performs the core multiplication and partial accumulation
 operations. It multiplies a single input bit with a 4-bit weight to generate
 weighted input values.
