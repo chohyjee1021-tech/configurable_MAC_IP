@@ -57,6 +57,8 @@ processing pipeline.
 
 ![Figure 1: High-level block diagram of the Configurable MAC IP](images/fig1_mac_block_diagram.png)
 
+*Fig 1. High-level block diagram of the Configurable MAC IP*
+
 The Configurable MAC IP is composed of modular functional blocks that collectively
 perform multiplication, accumulation, and result processing. This modular design
 improves readability, configurability, and ease of integration into SoC-level
@@ -81,6 +83,8 @@ following sections.
 ## 4. Operational Principle
 
 ![Figure 2: MAC operation](images/fig2_mac_equation.png)
+
+*Fig 2. MAC operation*
 
 The MAC IP implements a multiply-and-accumulate operation optimized for a
 Computing-in-Memory (CIM) execution model. In a CIM architecture, computation is
@@ -114,6 +118,8 @@ Figure 3 provides an example of MAC operation output captured from the simulatio
 The terminal output confirms correct sequencing of bit-serial accumulation and validates functional behavior across multiple input cycles.
 
 ![Figure 3:Operation output in terminal](images/fig3_terminal_output.png)
+
+*Fig 3. Operation output in terminal*
 
 ---
 
@@ -176,6 +182,8 @@ OUT["Partial Sum Output"]
 C0 --> OUT
 ```
 
+*Fig 4. LMAC Flow*
+
 The LMAC module performs the core multiplication and partial accumulation
 operations. It multiplies a single input bit with a 4-bit weight to generate
 weighted input values. The diagram above depicts the internal adder-tree structure of a single LMAC instance, showing how multiple weighted input values are hierarchically combined using CLA-based adders to produce a partial sum.
@@ -203,6 +211,7 @@ The testbench applies bit-serial inputs and checks accumulated results against e
 
 ![Figure 5: LMAC Testbench](images/fig5_lmac_testbench.png)
 
+*Fig 5. Operation output in terminal*
 
 ### 5.2 GIO (General Input/Output Interface)
 
@@ -272,6 +281,8 @@ SHIFTACC --> ACCSUM
 SHIFTACC --> CYCLE
 ```
 
+*Fig 6. GIO Block Diagram*
+
 The GIO module manages partial-sum alignment, accumulation, and intermediate
 storage between LMAC processing stages. It consists of D flip-flops, CLA-based
 adders, and a shift-and-accumulate unit.
@@ -307,6 +318,8 @@ Figure 7 summarizes the complete MAC operation sequence across multiple clock cy
 The diagram highlights how partial sums generated in earlier stages are combined during final accumulation to produce the full-precision result.
 
 ![Figure 7: Whole sequence of the MAC operation](images/fig7_mac_array.png)
+
+*Fig 7. MAC operation sequence*
 
 ---
 
