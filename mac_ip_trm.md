@@ -121,7 +121,7 @@ partial-sum accumulation, and final result generation.
 
 ### 5.1 LMAC (Logic MAC)
 
-![Figure 4: LMAC Flow](images/fig4_lmac.png)
+![Figure 4: LMAC Flow](images/fig4_lmac.jpeg)
 
 The LMAC module performs the core multiplication and partial accumulation
 operations. It multiplies a single input bit with a 4-bit weight to generate
@@ -144,7 +144,7 @@ Addition within the LMAC is implemented using an **8-bit Carry Lookahead Adder
 Each 4-bit CLA consists of four full adders and a 4-bit lookahead logic unit,
 providing fast carry propagation and improved performance.
 
-![Figure 5: LMAC Testbench](images/fig5_lamc_testbench.png)
+![Figure 5: LMAC Testbench](images/fig5_lmac_testbench.png)
 
 
 ### 5.2 GIO (General Input/Output Interface)
