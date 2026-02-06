@@ -55,7 +55,7 @@ processing pipeline.
 
 ## 3. MAC Architecture
 
-![Figure 1: High-level block diagram of the Configurable MAC IP](images/fig1.png)
+![Figure 1: High-level block diagram of the Configurable MAC IP](images/fig1_mac_equation.png)
 
 The Configurable MAC IP is composed of modular functional blocks that collectively
 perform multiplication, accumulation, and result processing. This modular design
@@ -79,6 +79,8 @@ following sections.
 ---
 
 ## 4. Operational Principle
+
+![Figure 2: MAC operation](images/fig2_equation.png)
 
 The MAC IP implements a multiply-and-accumulate operation optimized for a
 Computing-in-Memory (CIM) execution model. In a CIM architecture, computation is
@@ -107,6 +109,8 @@ The architecture supports multiple precision modes, allowing operation with
 4-bit or 8-bit input data and 4-bit or 8-bit weights, resulting in four supported
 input–weight configuration combinations.
 
+![Figure 3:Operation output in terminal](images/fig3_terminal_output.png)
+
 ---
 
 ## 5. Module Description
@@ -116,6 +120,8 @@ The MAC IP is composed of three primary functional modules: **LMAC**, **GIO**, a
 partial-sum accumulation, and final result generation.
 
 ### 5.1 LMAC (Logic MAC)
+
+![Figure 4: LMAC Flow](images/fig4_lmac.png)
 
 The LMAC module performs the core multiplication and partial accumulation
 operations. It multiplies a single input bit with a 4-bit weight to generate
@@ -138,8 +144,12 @@ Addition within the LMAC is implemented using an **8-bit Carry Lookahead Adder
 Each 4-bit CLA consists of four full adders and a 4-bit lookahead logic unit,
 providing fast carry propagation and improved performance.
 
+![Figure 5: LMAC Testbench](images/fig5_lamc_testbench.png)
+
 
 ### 5.2 GIO (General Input/Output Interface)
+
+![Figure 6: GIO Flow](images/fig6_gio.png)
 
 The GIO module manages partial-sum alignment, accumulation, and intermediate
 storage between LMAC processing stages. It consists of D flip-flops, CLA-based
@@ -171,6 +181,8 @@ with the newly generated partial sum to produce the final result.
 
 This staged accumulation approach enables flexible precision support while
 maintaining compatibility with bit-serial CIM input characteristics.
+
+![Figure 7: Whole sequence of the MAC operation](images/fig7_mac_array.png)
 
 ---
 
