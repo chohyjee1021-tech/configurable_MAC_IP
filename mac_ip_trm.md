@@ -85,7 +85,8 @@ following sections.
 The MAC IP implements a multiply-and-accumulate operation optimized for a
 Computing-in-Memory (CIM) execution model. In a CIM architecture, computation is
 performed close to or within memory arrays to minimize data movement and reduce
-system-level bottlenecks.
+system-level bottlenecks. Figure 2 shows the conceptual multiply-and-accumulate operation implemented by the MAC IP. 
+Rather than completing a full-width multiplication in a single cycle, the operation is decomposed into bit-wise partial products that are accumulated over multiple clock cycles.
 
 Unlike conventional MAC architectures—where full-width input and weight values
 are multiplied each clock cycle and accumulated sequentially—the proposed MAC
@@ -109,6 +110,9 @@ The architecture supports multiple precision modes, allowing operation with
 4-bit or 8-bit input data and 4-bit or 8-bit weights, resulting in four supported
 input–weight configuration combinations.
 
+Figure 3 provides an example of MAC operation output captured from the simulation environment. 
+The terminal output confirms correct sequencing of bit-serial accumulation and validates functional behavior across multiple input cycles.
+
 ![Figure 3:Operation output in terminal](images/fig3_terminal_output.png)
 
 ---
@@ -121,127 +125,61 @@ partial-sum accumulation, and final result generation.
 
 ### 5.1 LMAC (Logic MAC)
 
-![Figure 4: LMAC Flow](images/fig4_lmac.jpeg)
-
+```mermaid
 flowchart LR
 
-%% Inputs
-WI0[weighted_input[0]]
-WI1[weighted_input[1]]
-WI2[weighted_input[2]]
-WI3[weighted_input[3]]
-WI4[weighted_input[4]]
-WI5[weighted_input[5]]
-WI6[weighted_input[6]]
-WI7[weighted_input[7]]
-WI8[weighted_input[8]]
-WI9[weighted_input[9]]
-WI10[weighted_input[10]]
-WI11[weighted_input[11]]
-WI12[weighted_input[12]]
-WI13[weighted_input[13]]
-WI14[weighted_input[14]]
-WI15[weighted_input[15]]
-WI16[weighted_input[16]]
-WI17[weighted_input[17]]
-WI18[weighted_input[18]]
-WI19[weighted_input[19]]
-WI20[weighted_input[20]]
-WI21[weighted_input[21]]
-WI22[weighted_input[22]]
-WI23[weighted_input[23]]
-WI24[weighted_input[24]]
+classDef node fill:#ffffff,stroke:#000000,color:#000000;
+classDef adder fill:#ffffff,stroke:#000000,color:#000000;
 
-%% Level 1 adders
-A0[CLA_8b]
-A1[CLA_8b]
-A2[CLA_8b]
-A3[CLA_8b]
-A4[CLA_8b]
-A5[CLA_8b]
-A6[CLA_8b]
-A7[CLA_8b]
-A8[CLA_8b]
-A9[CLA_8b]
-A10[CLA_8b]
-A11[CLA_8b]
+%% Input stage (representative inputs only)
+WI0["weighted_input[0]"]
+WI1["weighted_input[1]"]
+WI2["weighted_input[2]"]
+WI3["weighted_input[3]"]
+WIN["weighted_input[...]"]
+WI22["weighted_input[22]"]
+WI23["weighted_input[23]"]
+WI24["weighted_input[24]"]
+
+%% Level 1 accumulation
+A0["CLA_8b"]
+A1["CLA_8b"]
+A2["CLA_8b"]
+A3["CLA_8b"]
 
 WI0 --> A0
 WI1 --> A0
 WI2 --> A1
 WI3 --> A1
-WI4 --> A2
-WI5 --> A2
-WI6 --> A3
-WI7 --> A3
-WI8 --> A4
-WI9 --> A4
-WI10 --> A5
-WI11 --> A5
-WI12 --> A6
-WI13 --> A6
-WI14 --> A7
-WI15 --> A7
-WI16 --> A8
-WI17 --> A8
-WI18 --> A9
-WI19 --> A9
-WI20 --> A10
-WI21 --> A10
-WI22 --> A11
-WI23 --> A11
+WIN --> A2
+WI22 --> A2
+WI23 --> A3
+WI24 --> A3
 
-%% Level 2 adders
-B0[CLA_8b]
-B1[CLA_8b]
-B2[CLA_8b]
-B3[CLA_8b]
-B4[CLA_8b]
-B5[CLA_8b]
+%% Level 2 accumulation
+B0["CLA_8b"]
+B1["CLA_8b"]
 
 A0 --> B0
 A1 --> B0
 A2 --> B1
 A3 --> B1
-A4 --> B2
-A5 --> B2
-A6 --> B3
-A7 --> B3
-A8 --> B4
-A9 --> B4
-A10 --> B5
-A11 --> B5
 
-%% Level 3 adders
-C0[CLA_8b]
-C1[CLA_8b]
-C2[CLA_8b]
+%% Level 3 accumulation
+C0["CLA_8b"]
 
 B0 --> C0
 B1 --> C0
-B2 --> C1
-B3 --> C1
-B4 --> C2
-B5 --> C2
 
-%% Level 4 adders
-D0[CLA_8b]
-D1[CLA_8b]
-
-C0 --> D0
-C1 --> D0
-C2 --> D1
-WI24 --> D1
-
-%% Final output
-OUT[Accumulated Output]
-D0 --> OUT
-D1 --> OUT
-
+%% Output
+OUT["Partial Sum Output"]
+C0 --> OUT
+```
 
 The LMAC module performs the core multiplication and partial accumulation
 operations. It multiplies a single input bit with a 4-bit weight to generate
-weighted input values.
+weighted input values. The diagram above depicts the internal adder-tree structure of a single LMAC instance, showing how multiple weighted input values are hierarchically combined using CLA-based adders to produce a partial sum.
+
 
 For each input bit, **25 weighted inputs** are produced and combined using an
 adder-tree structure. The adder tree groups weighted inputs in pairs and sums
@@ -260,12 +198,79 @@ Addition within the LMAC is implemented using an **8-bit Carry Lookahead Adder
 Each 4-bit CLA consists of four full adders and a 4-bit lookahead logic unit,
 providing fast carry propagation and improved performance.
 
+Figure 5 shows the LMAC verification environment used to validate correct partial-sum generation. 
+The testbench applies bit-serial inputs and checks accumulated results against expected values across supported precision modes.
+
 ![Figure 5: LMAC Testbench](images/fig5_lmac_testbench.png)
 
 
 ### 5.2 GIO (General Input/Output Interface)
 
-![Figure 6: GIO Flow](images/fig6_gio.png)
+```mermaid
+flowchart TB
+
+%% ---------- Styles ----------
+style GIO fill:#ffffff,stroke:#000000,color:#000000
+style ADDERS fill:#ffffff,stroke:#000000,color:#000000
+classDef module fill:#ffffff,stroke:#000000,color:#000000;
+classDef signal fill:#ffffff,stroke:#000000,color:#000000;
+
+%% ---------- Modules ----------
+subgraph GIO["gio"]
+direction TB
+
+  DFF["d_ff"]
+  class DFF module;
+
+    RMSB[[result_msb]]
+    RLSB[[result_lsb]]
+
+  subgraph ADDERS["adders_cla"]
+  direction TB
+    CLA["cla_13b"]
+    FF1["FF"]
+    class CLA,FF1 module;
+    CLA --- FF1
+  end
+
+  SUM[[sum]]
+  DONE[[output_done]]
+
+  SHIFTACC["shiftacc"]
+  class SHIFTACC module;
+
+end
+
+%% ---------- Signals ----------
+PA[[psum_a]]
+PB[[psum_b]]
+
+READY[[acc_ready]]
+ACCSUM[[acc_sum]]
+CYCLE[[cycle_count]]
+
+class PA,PB,RMSB,RLSB,SUM,DONE,READY,ACCSUM,CYCLE signal;
+
+%% ---------- Wiring ----------
+PA --> DFF
+PB --> DFF
+
+DFF --- RMSB
+DFF --- RLSB
+
+RMSB --> CLA
+RLSB --> CLA
+
+FF1 --- SUM
+FF1 --- DONE
+
+SUM --> SHIFTACC
+DONE --> SHIFTACC
+
+SHIFTACC --> READY
+SHIFTACC --> ACCSUM
+SHIFTACC --> CYCLE
+```
 
 The GIO module manages partial-sum alignment, accumulation, and intermediate
 storage between LMAC processing stages. It consists of D flip-flops, CLA-based
@@ -297,6 +302,9 @@ with the newly generated partial sum to produce the final result.
 
 This staged accumulation approach enables flexible precision support while
 maintaining compatibility with bit-serial CIM input characteristics.
+
+Figure 7 summarizes the complete MAC operation sequence across multiple clock cycles. 
+The diagram highlights how partial sums generated in earlier stages are combined during final accumulation to produce the full-precision result.
 
 ![Figure 7: Whole sequence of the MAC operation](images/fig7_mac_array.png)
 
