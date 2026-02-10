@@ -64,8 +64,8 @@ processing pipeline.
 
 ## 2. Key Features
 
-- **Configurable Data Widths(4b/8b)**  
-  Supports programmable input data and weight bit widths to accommodate a wide
+- **Configurable Data Widths **  
+  Supports programmable of 4b/8b for input data and weight bit widths to accommodate a wide
   range of DSP and machine learning workloads.
 
 - **Modular and Scalable Architecture**  
@@ -153,7 +153,7 @@ At time        510 : reset is pressed; DCIM macro initialized!
 At time        515 : reset is pressed; DCIM macro initialized!
 At time        645 : in_width = 1, w_width = 1, final_sum =    334125
 
-# Note: $stop : C:/Users/hj/Desktop/DCIM/top_tb.v(166)
+# Note: $stop : C:/Users/Desktop/DCIM/top_tb.v(166)
 # Time: 670 ns  Iteration: 0  Instance: /top_tb
 ```
 
