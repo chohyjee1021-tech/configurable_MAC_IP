@@ -35,13 +35,9 @@ processing pipeline.
 
 ## 2. Key Features
 
-- **Configurable Data Widths**  
+- **Configurable Data Widths(4b/8b)**  
   Supports programmable input data and weight bit widths to accommodate a wide
   range of DSP and machine learning workloads.
-
-- **Flexible Accumulation Modes**  
-  Provides configurable accumulation depth with optional shifting and saturation
-  to prevent overflow and maintain numerical stability.
 
 - **Modular and Scalable Architecture**  
   Designed with a modular structure that allows easy customization and scalability
@@ -55,9 +51,9 @@ processing pipeline.
 
 ## 3. MAC Architecture
 
-![Figure 1: High-level block diagram of the Configurable MAC IP](images/fig1_mac_block_diagram.png)
+![Figure 1: Block diagram of the Configurable MAC IP](images/fig1_mac_block_diagram.png)
 
-*Fig 1. High-level block diagram of the Configurable MAC IP*
+*Fig 1. Block diagram of the Configurable MAC IP*
 
 The Configurable MAC IP is composed of modular functional blocks that collectively
 perform multiplication, accumulation, and result processing. This modular design
