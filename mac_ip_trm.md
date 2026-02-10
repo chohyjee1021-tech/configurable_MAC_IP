@@ -11,6 +11,33 @@
 > portfolio purposes. It does not include or reference any proprietary,
 > confidential, or company-specific information.
 
+## Table of Contents
+
+1. [Overview](#1-overview)  
+2. [Key Features](#2-key-features)  
+3. [MAC Architecture](#3-mac-architecture)  
+4. [Operational Principle](#4-operational-principle)  
+5. [Module Description](#5-module-description)  
+   - 5.1 [LMAC (Logic MAC)](#51-lmac-logic-mac)  
+   - 5.2 [GIO (General InputOutput Interface)](#52-gio-general-inputoutput-interface)  
+   - 5.3 [FinalShiftAcc (Final Shift and Accumulation Unit)](#53-finalshiftacc-final-shift-and-accumulation-unit)  
+6. [Data Format & Bit Width](#6-data-format--bit-width)  
+7. [Control & Configuration Interface](#7-control--configuration-interface)  
+   - 7.1 [Configuration Parameters](#71-configuration-parameters)  
+   - 7.2 [Precision Configuration](#72-precision-configuration)  
+   - 7.3 [Operation Flow Control](#73-operation-flow-control)  
+   - 7.4 [Output Validity](#74-output-validity)  
+8. [Integration Guidelines](#8-integration-guidelines)  
+   - 8.1 [Clock and Reset Integration](#81-clock-and-reset-integration)  
+   - 8.2 [Firmware Interaction](#82-firmware-interaction)  
+   - 8.3 [Data Path Integration](#83-data-path-integration)  
+   - 8.4 [Precision-Dependent Latency Considerations](#84-precision-dependent-latency-considerations)  
+   - 8.5 [System-Level Considerations](#85-system-level-considerations)  
+9. [Limitations & Notes](#9-limitations--notes)  
+
+**Appendix**  
+- [Appendix A. End-to-End MAC Operation Example](#appendix-a-end-to-end-mac-operation-example)
+- [Appendix B. Performance, Power, and Area (PPA) Evaluation](#appendix-b-performance-power-and-area-ppa-evaluation)
 
 
 ---
@@ -220,12 +247,6 @@ Addition within the LMAC is implemented using an **8-bit Carry Lookahead Adder
 Each 4-bit CLA consists of four full adders and a 4-bit lookahead logic unit,
 providing fast carry propagation and improved performance.
 
-Figure 5 shows the LMAC verification environment used to validate correct partial-sum generation. 
-The testbench applies bit-serial inputs and checks accumulated results against expected values across supported precision modes.
-
-![Figure 5: LMAC Testbench](images/fig5_lmac_testbench.png)
-
-*Fig 5. Operation output in terminal*
 
 ### 5.2 GIO (General Input/Output Interface)
 
@@ -328,13 +349,6 @@ with the newly generated partial sum to produce the final result.
 This staged accumulation approach enables flexible precision support while
 maintaining compatibility with bit-serial CIM input characteristics.
 
-Figure 7 summarizes the complete MAC operation sequence across multiple clock cycles. 
-The diagram highlights how partial sums generated in earlier stages are combined during final accumulation to produce the full-precision result.
-
-![Figure 7: Whole sequence of the MAC operation](images/fig7_mac_array.png)
-
-*Fig 7. MAC operation sequence*
-
 ---
 
 ## 6. Data Format & Bit Width
@@ -403,69 +417,14 @@ accumulation is complete.
 
 ---
 
-## 8. Performance Summary
-
-This section summarizes the performance, power, and area (PPA) characteristics of
-the Configurable MAC IP based on a prototype implementation and physical design
-evaluation. The results are provided for reference and trend analysis and do not
-represent production-qualified metrics.
-
-### 8.1 Evaluation Methodology
-
-Performance evaluation was conducted using the open-source OpenROAD toolchain.
-The evaluation flow includes logic synthesis, floorplanning, placement, routing,
-and static timing analysis.
-
-The MAC IP RTL was synthesized using the Nangate45 open-source standard cell
-library. Timing constraints and basic floorplan properties were provided to
-enable end-to-end physical implementation and comparative PPA analysis.
-
-### 8.2 Performance Results
-
-Compared to the initial baseline implementation, the optimized MAC design
-achieved approximately **12% improvement in maximum operating frequency**.
-The performance gain is primarily attributed to architectural refinements and
-optimized adder structures within the accumulation path.
-
-### 8.3 Power Consumption
-
-The optimized design exhibited an approximate **22% increase in power
-consumption** relative to the baseline implementation. This increase reflects
-higher switching activity and additional logic associated with improved
-performance.
-
-Power consumption varies depending on configuration parameters such as input
-precision, weight precision, and accumulation behavior.
-
-### 8.4 Area Utilization
-
-Area utilization increased by approximately **21%** compared to the baseline
-design. The increase is mainly due to additional logic introduced for optimized
-accumulation and carry lookahead adder structures.
-
-Area requirements scale with configuration options and supported precision
-modes.
-
-### 8.5 PPA Trade-off Analysis
-
-The evaluation results highlight typical performance–power–area trade-offs
-observed in MAC IP design. While performance improvements were achieved, they
-were accompanied by increased power consumption and area utilization.
-
-These results demonstrate the impact of architectural and adder-level
-optimization choices and emphasize the importance of selecting appropriate
-configurations based on system-level requirements.
-
----
-
-## 9. Integration Guidelines
+## 8. Integration Guidelines
 
 This section provides general guidelines for integrating the Configurable MAC IP
 into a larger SoC or processing subsystem. The MAC IP operates using a bit-serial,
 multi-cycle accumulation model, and proper integration requires awareness of its
 timing and precision-dependent behavior.
 
-### 9.1 Clock and Reset Integration
+### 8.1 Clock and Reset Integration
 
 The MAC IP should be driven by a stable system clock that meets the timing
 requirements of the selected configuration. Because MAC operations span multiple
@@ -476,7 +435,7 @@ A synchronous reset is recommended to initialize internal state, including
 accumulation registers and control logic, to a known condition during system
 startup or recovery from error conditions.
 
-### 9.2 Firmware Interaction
+### 8.2 Firmware Interaction
 
 Firmware or control logic is responsible for configuring the MAC IP prior to
 operation, including selection of input and weight precision modes.
@@ -485,7 +444,7 @@ Once an operation has started, configuration parameters should remain unchanged
 until the MAC computation has completed. Modifying configuration settings during
 an active operation may result in undefined behavior.
 
-### 9.3 Data Path Integration
+### 8.3 Data Path Integration
 
 Input data is processed in a bit-serial manner, with one input bit consumed per
 clock cycle. Upstream logic must ensure that input data remains valid and
@@ -498,7 +457,7 @@ computation sequence.
 The output result becomes valid only after all required input bits have been
 processed and accumulated.
 
-### 9.4 Precision-Dependent Latency Considerations
+### 8.4 Precision-Dependent Latency Considerations
 
 The number of clock cycles required to produce a valid output depends on the
 selected input precision.
@@ -510,7 +469,7 @@ results are internally stored and combined before the final output is generated.
 System-level scheduling and data handoff logic should account for this
 precision-dependent latency behavior.
 
-### 9.5 System-Level Considerations
+### 8.5 System-Level Considerations
 
 When integrating multiple MAC instances or operating in high-throughput
 scenarios, designers should consider overall system bandwidth, clock domain
@@ -521,7 +480,7 @@ power consumption, and area utilization.
 
 ---
 
-## 10. Limitations & Notes
+## 9. Limitations & Notes
 
 The Configurable MAC IP is intended as a flexible and reusable compute block;
 however, certain limitations and considerations should be noted.
@@ -537,6 +496,83 @@ however, certain limitations and considerations should be noted.
 
 Designers are encouraged to validate configurations and performance within their
 target system environment.
+
+---
+
+## Appendix A. End-to-End MAC Operation Example
+
+Figure A-1 illustrates the complete MAC operation sequence across multiple clock cycles,
+from bit-serial input processing to final full-precision accumulation.
+The figure serves as a reference example to clarify how partial sums generated in intermediate stages are combined during the final accumulation phase.
+
+![Figure A-1: End-to-end MAC operation sequence](images/fig7_mac_array.png)
+
+*Fig. A-1. Complete MAC operation sequence across multiple clock cycles*
+
+
+## Appendix B. Performance, Power, and Area (PPA) Evaluation
+
+This appendix provides supplementary information on the performance, power, and
+area (PPA) characteristics of the Configurable MAC IP. The results presented here
+are intended for reference and trend analysis and are not required for functional
+understanding of the IP.
+
+### B.1 Evaluation Methodology
+
+The PPA evaluation was conducted using the open-source **OpenROAD** physical
+design flow. The evaluation process included logic synthesis, floorplanning,
+placement, routing, and static timing analysis.
+
+The MAC IP RTL was synthesized using the **Nangate45 open-source standard cell
+library**. Timing constraints and basic floorplan parameters were applied to
+enable an end-to-end physical implementation and to support comparative analysis
+between baseline and optimized design versions.
+
+This evaluation setup reflects an academic and exploratory implementation
+environment rather than a production-qualified design flow.
+
+### B.2 Performance Results
+
+Compared to the baseline implementation, the optimized MAC design achieved an
+approximate **12% improvement in maximum operating frequency**.
+
+This performance improvement is primarily attributed to architectural refinements
+in the accumulation path and the introduction of optimized carry lookahead adder
+(CLA) structures within the LMAC and GIO modules.
+
+### B.3 Power Consumption
+
+The optimized design exhibited an approximate **22% increase in power
+consumption** relative to the baseline design.
+
+The increase in power is mainly due to higher switching activity and the additional
+logic required to support improved performance and parallel accumulation
+structures. Power consumption varies depending on the selected input and weight
+precision configurations.
+
+### B.4 Area Utilization
+
+Area utilization increased by approximately **21%** compared to the baseline
+implementation.
+
+This increase is primarily caused by the expanded adder structures and additional
+control logic introduced to improve timing performance. Area requirements scale
+with supported precision modes and configuration options.
+
+### B.5 PPA Trade-off Discussion
+
+The evaluation results illustrate typical **performance–power–area trade-offs**
+observed in MAC IP design.
+
+While higher operating frequency was achieved through architectural and adder-
+level optimizations, these improvements were accompanied by increased power
+consumption and area utilization. The results highlight the importance of
+selecting configuration parameters that align with system-level performance,
+power, and area requirements.
+
+The PPA data presented in this appendix is intended to support design-space
+exploration and architectural discussion rather than to serve as definitive
+implementation metrics.
 
 ---
 
