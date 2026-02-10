@@ -11,6 +11,8 @@
 > portfolio purposes. It does not include or reference any proprietary,
 > confidential, or company-specific information.
 
+
+
 ---
 
 ## 1. Overview
@@ -110,12 +112,28 @@ The architecture supports multiple precision modes, allowing operation with
 4-bit or 8-bit input data and 4-bit or 8-bit weights, resulting in four supported
 input–weight configuration combinations.
 
-Figure 3 provides an example of MAC operation output captured from the simulation environment. 
+```asciidoc
+At time          0 : reset is pressed; DCIM macro initialized!
+At time          5 : reset is pressed; DCIM macro initialized!
+At time         95 : in_width = 0, w_width = 0, final_sum =      125
+At time        170 : reset is pressed; DCIM macro initialized!
+At time        175 : reset is pressed; DCIM macro initialized!
+At time        265 : in_width = 0, w_width = 1, final_sum =    10125
+At time        340 : reset is pressed; DCIM macro initialized!
+At time        345 : reset is pressed; DCIM macro initialized!
+At time        475 : in_width = 1, w_width = 0, final_sum =     4125
+At time        510 : reset is pressed; DCIM macro initialized!
+At time        515 : reset is pressed; DCIM macro initialized!
+At time        645 : in_width = 1, w_width = 1, final_sum =    334125
+
+# Note: $stop : C:/Users/hj/Desktop/DCIM/top_tb.v(166)
+# Time: 670 ns  Iteration: 0  Instance: /top_tb
+```
+
+The terminal above provides an example of MAC operation output captured from the simulation environment. 
 The terminal output confirms correct sequencing of bit-serial accumulation and validates functional behavior across multiple input cycles.
 
-![Figure 3:Operation output in terminal](images/fig3_terminal_output.png)
 
-*Fig 3. Operation output in terminal*
 
 ---
 
@@ -134,14 +152,14 @@ classDef node fill:#ffffff,stroke:#000000,color:#000000;
 classDef adder fill:#ffffff,stroke:#000000,color:#000000;
 
 %% Input stage (representative inputs only)
-WI0["weighted_input[0]"]
-WI1["weighted_input[1]"]
-WI2["weighted_input[2]"]
-WI3["weighted_input[3]"]
-WIN["weighted_input[...]"]
-WI22["weighted_input[22]"]
-WI23["weighted_input[23]"]
-WI24["weighted_input[24]"]
+WI0(["weighted_input[0]"])
+WI1(["weighted_input[1]"])
+WI2(["weighted_input[2]"])
+WI3(["weighted_input[3]"])
+WIN(["weighted_input[...]"])
+WI22(["weighted_input[22]"])
+WI23(["weighted_input[23]"])
+WI24(["weighted_input[24]"])
 
 %% Level 1 accumulation
 A0["CLA_8b"]
@@ -174,7 +192,7 @@ B0 --> C0
 B1 --> C0
 
 %% Output
-OUT["Partial Sum Output"]
+OUT(["Partial Sum Output"])
 C0 --> OUT
 ```
 
@@ -227,8 +245,8 @@ direction TB
   DFF["d_ff"]
   class DFF module;
 
-    RMSB[[result_msb]]
-    RLSB[[result_lsb]]
+    RMSB([result_msb])
+    RLSB([result_lsb])
 
   subgraph ADDERS["adders_cla"]
   direction TB
@@ -238,8 +256,8 @@ direction TB
     CLA --- FF1
   end
 
-  SUM[[sum]]
-  DONE[[output_done]]
+  SUM([sum])
+  DONE([output_done])
 
   SHIFTACC["shiftacc"]
   class SHIFTACC module;
@@ -247,12 +265,12 @@ direction TB
 end
 
 %% ---------- Signals ----------
-PA[[psum_a]]
-PB[[psum_b]]
+PA([psum_a])
+PB([psum_b])
 
-READY[[acc_ready]]
-ACCSUM[[acc_sum]]
-CYCLE[[cycle_count]]
+READY([acc_ready])
+ACCSUM([acc_sum])
+CYCLE([cycle_count])
 
 class PA,PB,RMSB,RLSB,SUM,DONE,READY,ACCSUM,CYCLE signal;
 
