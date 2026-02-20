@@ -223,7 +223,7 @@ OUT(["Partial Sum Output"])
 C0 --> OUT
 ```
 
-*Fig 4. LMAC Flow*
+*Fig 3. LMAC Flow*
 
 The LMAC module performs the core multiplication and partial accumulation
 operations. It multiplies a single input bit with a 4-bit weight to generate
@@ -316,7 +316,7 @@ SHIFTACC --> ACCSUM
 SHIFTACC --> CYCLE
 ```
 
-*Fig 6. GIO Block Diagram*
+*Fig 4. GIO Block Diagram*
 
 The GIO module manages partial-sum alignment, accumulation, and intermediate
 storage between LMAC processing stages. It consists of D flip-flops, CLA-based
@@ -505,7 +505,7 @@ Figure A-1 illustrates the complete MAC operation sequence across multiple clock
 from bit-serial input processing to final full-precision accumulation.
 The figure serves as a reference example to clarify how partial sums generated in intermediate stages are combined during the final accumulation phase.
 
-![Figure A-1: End-to-end MAC operation sequence](images/fig7_mac_array.png)
+![Figure A-1: End-to-end MAC operation sequence](images/mac_array.png)
 
 *Fig. A-1. Complete MAC operation sequence across multiple clock cycles*
 
