@@ -39,4 +39,4 @@ configurable-mac-ip-doc/
 ├─ README.md
 ├─ mac_ip_trm.md
 └─ images/
-   └─ mac_block_diagram.png
+
