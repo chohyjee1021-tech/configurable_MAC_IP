@@ -35,7 +35,7 @@ The goal of this repository is to showcase the ability to:
 ## Repository Structure
 
 ```text
-configurable-mac-ip-doc/
+configurable_MAC_IP/
 ├─ README.md
 ├─ mac_ip_trm.md
 └─ images/
